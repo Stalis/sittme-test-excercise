@@ -42,27 +42,16 @@ func main() {
 		BindPath: bindPath,
 	}
 	app.Initialize()
-	app.Run(http.Server{
+	s := http.Server{
 		Addr:         fmt.Sprintf("%v:%v", host, port),
 		ReadTimeout:  readTimeout,
 		WriteTimeout: writeTimeout,
 	})
 
-	// var err error
-	// if useTLS {
-	// 	err = server.ListenAndServeTLS(tlsCert, tlsKey)
-	// } else {
-	// 	err = server.ListenAndServe()
-	// }
-
-	// if err != nil {
-	// 	glg.Fatal(err)
-	// }
+	var err error
+	if useTLS {
+		app.Run(s)
+	} else {
+		app.RunTls(s, tlsCert, tlsKey)
+	}
 }
-
-// NewRouter Создает экземпляр роутера с обработчиком запросов для сервера
-// func NewRouter() http.Handler {
-// 	router := mux.NewRouter()
-// 	router.HandleFunc(bindPath, Handler).Methods()
-// 	return router
-// }

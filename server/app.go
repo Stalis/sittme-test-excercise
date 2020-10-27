@@ -17,11 +17,11 @@ type App struct {
 	BindPath string
 	router   *mux.Router
 	server   http.Server
-	streams  *stream.Repository
+	streams  stream.Repository
 }
 
 func (app *App) Initialize() {
-	app.streams = stream.NewRepository()
+	app.streams = stream.NewMapRepository()
 
 	app.router = mux.NewRouter()
 	app.initializeRoutes()
@@ -30,6 +30,11 @@ func (app *App) Initialize() {
 func (app *App) Run(server http.Server) {
 	server.Handler = app.router
 	glg.Fatalln(server.ListenAndServe())
+}
+
+func (app *App) RunTLS(server http.Server, certPath, keyPath string) {
+	server.Handler = app.router
+	glg.Fatalln(server.ListenAndServeTLS(certPath, keyPath))
 }
 
 func (app *App) initializeRoutes() {
