@@ -8,9 +8,7 @@ import (
 
 	"github.com/kpango/glg"
 
-	"github.com/gorilla/mux"
-
-	"./api"
+	"./server"
 )
 
 var (
@@ -40,37 +38,31 @@ func main() {
 
 	glg.Infof("Starting server at %v:%v", host, port)
 
-	server := &http.Server{
+	app := server.App{
+		BindPath: bindPath,
+	}
+	app.Initialize()
+	app.Run(http.Server{
 		Addr:         fmt.Sprintf("%v:%v", host, port),
-		Handler:      NewRouter(),
 		ReadTimeout:  readTimeout,
 		WriteTimeout: writeTimeout,
-	}
+	})
 
-	var err error
-	if useTLS {
-		err = server.ListenAndServeTLS(tlsCert, tlsKey)
-	} else {
-		err = server.ListenAndServe()
-	}
+	// var err error
+	// if useTLS {
+	// 	err = server.ListenAndServeTLS(tlsCert, tlsKey)
+	// } else {
+	// 	err = server.ListenAndServe()
+	// }
 
-	if err != nil {
-		glg.Fatal(err)
-	}
+	// if err != nil {
+	// 	glg.Fatal(err)
+	// }
 }
 
 // NewRouter Создает экземпляр роутера с обработчиком запросов для сервера
-func NewRouter() http.Handler {
-	router := mux.NewRouter()
-	router.HandleFunc(bindPath, Handler)
-	return router
-}
-
-// Handler функция обработки запроса
-func Handler(w http.ResponseWriter, r *http.Request) {
-	api.ProcessRequest(r.Method, r.URL.Query())
-	err := r.Write(w)
-	if err != nil {
-		glg.Error(err)
-	}
-}
+// func NewRouter() http.Handler {
+// 	router := mux.NewRouter()
+// 	router.HandleFunc(bindPath, Handler).Methods()
+// 	return router
+// }

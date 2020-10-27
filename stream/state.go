@@ -1,4 +1,4 @@
-package translation
+package stream
 
 // State Тип состояния трансляции
 type State int
