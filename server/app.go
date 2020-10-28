@@ -18,14 +18,15 @@ import (
 
 // Config структура конфигурации сервера
 type Config struct {
-	Host         string
-	Port         int
-	BindPath     string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	UseTLS       bool
-	CertPath     string
-	KeyPath      string
+	Host          string
+	Port          int
+	BindPath      string
+	ReadTimeout   time.Duration
+	WriteTimeout  time.Duration
+	UseTLS        bool
+	CertPath      string
+	KeyPath       string
+	StreamTimeout time.Duration
 }
 
 // App приложение сервера трансляций
@@ -39,7 +40,7 @@ type App struct {
 // Initialize инициализирует роутер, хранилище данных и сохраняет конфигурацию
 func (app *App) Initialize(conf Config) {
 	app.config = conf
-	app.streams = stream.NewMapRepository()
+	app.streams = stream.NewMapRepository(app.config.StreamTimeout)
 
 	app.router = mux.NewRouter()
 	app.initializeRoutes()

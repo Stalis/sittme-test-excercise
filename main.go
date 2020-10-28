@@ -10,14 +10,15 @@ import (
 )
 
 var (
-	host         string
-	port         int
-	readTimeout  time.Duration
-	writeTimeout time.Duration
-	useTLS       bool
-	tlsCert      string
-	tlsKey       string
-	bindPath     string
+	host          string
+	port          int
+	readTimeout   time.Duration
+	writeTimeout  time.Duration
+	useTLS        bool
+	tlsCert       string
+	tlsKey        string
+	bindPath      string
+	streamTimeout time.Duration
 )
 
 func init() {
@@ -29,6 +30,7 @@ func init() {
 	flag.StringVar(&tlsCert, "tls-cert", "cert.pem", "Path to TLS certificate")
 	flag.StringVar(&tlsKey, "tls-key", "key.pem", "Path to TLS key file")
 	flag.StringVar(&bindPath, "path", "/", "Path for binding service")
+	flag.DurationVar(&streamTimeout, "stream-timeout", 5*time.Second, "Timeout for finish stream after interrupted")
 }
 
 func main() {
@@ -36,14 +38,15 @@ func main() {
 
 	app := server.App{}
 	app.Initialize(server.Config{
-		Host:         host,
-		Port:         port,
-		BindPath:     bindPath,
-		ReadTimeout:  readTimeout,
-		WriteTimeout: writeTimeout,
-		UseTLS:       useTLS,
-		CertPath:     tlsCert,
-		KeyPath:      tlsKey,
+		Host:          host,
+		Port:          port,
+		BindPath:      bindPath,
+		ReadTimeout:   readTimeout,
+		WriteTimeout:  writeTimeout,
+		UseTLS:        useTLS,
+		CertPath:      tlsCert,
+		KeyPath:       tlsKey,
+		StreamTimeout: streamTimeout,
 	})
 
 	app.RunAsync()

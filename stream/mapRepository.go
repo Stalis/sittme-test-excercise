@@ -2,19 +2,22 @@ package stream
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 // MapRepository репозиторий трансляций
 type MapRepository struct {
-	streams map[uuid.UUID]*Stream
+	streams          map[uuid.UUID]*Stream
+	streamTimeout    time.Duration
 }
 
 // NewMapRepository возвращает новый экземпляр репозитория трансляций
 func NewMapRepository() *MapRepository {
 	return &MapRepository{
-		make(map[uuid.UUID]*Stream),
+		streams:          make(map[uuid.UUID]*Stream),
+		streamTimeout:    streamTimeout,
 	}
 }
 
