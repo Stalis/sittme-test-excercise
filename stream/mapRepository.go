@@ -55,8 +55,9 @@ func (r *MapRepository) GetInfo(id uuid.UUID) (Stream, error) {
 
 // RemoveStream удаляет трансляцию
 func (r *MapRepository) RemoveStream(id uuid.UUID) error {
+	_, err := r.getStream(id)
 	delete(r.streams, id)
-	return nil
+	return err
 }
 
 func (r *MapRepository) getStream(id uuid.UUID) (*Stream, error) {
