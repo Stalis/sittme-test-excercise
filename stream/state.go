@@ -1,6 +1,10 @@
 package stream
 
-import "errors"
+import (
+	"errors"
+	"strconv"
+	"strings"
+)
 
 // State Тип состояния трансляции
 type State int
@@ -33,16 +37,25 @@ func (s State) String() string {
 
 // ParseState возвращает значение состояния из строки
 func ParseState(str string) (State, error) {
-	switch str {
-	case "Created":
-		return Created, nil
-	case "Active":
-		return Active, nil
-	case "Interrupted":
-		return Interrupted, nil
-	case "Finished":
-		return Finished, nil
-	default:
-		return Created, errors.New("Invalid State value")
+	res, err := strconv.Atoi(str)
+	if err == nil {
+		s := State(res)
+		if s < Created || s > Finished {
+			return s, errors.New("Invalid State value")
+		}
+		return s, nil
 	}
+
+	switch strings.ToLower(str) {
+	case "created":
+		return Created, nil
+	case "active":
+		return Active, nil
+	case "interrupted":
+		return Interrupted, nil
+	case "finished":
+		return Finished, nil
+	}
+
+	return State(-1), errors.New("Invalid State value")
 }
