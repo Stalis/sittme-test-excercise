@@ -28,12 +28,28 @@ func (r *MapRepository) CreateStream() (uuid.UUID, error) {
 	return id, nil
 }
 
+// SetState пробует изменить состояние трансляции на указанное
+func (r *MapRepository) SetState(id uuid.UUID, state State) error {
+	str, err := r.getStream(id)
+	if err != nil {
+		return err
+	}
+
+	err = str.SetState(state)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetInfo возвращает копию данных трансляции
 func (r *MapRepository) GetInfo(id uuid.UUID) (Stream, error) {
-	stream, ok := r.streams[id]
-	if !ok {
-		return Stream{}, errors.New("Not found stream")
+	stream, err := r.getStream(id)
+	if err != nil {
+		return Stream{}, err
 	}
+
 	return *stream, nil
 }
 
@@ -41,4 +57,12 @@ func (r *MapRepository) GetInfo(id uuid.UUID) (Stream, error) {
 func (r *MapRepository) RemoveStream(id uuid.UUID) error {
 	delete(r.streams, id)
 	return nil
+}
+
+func (r *MapRepository) getStream(id uuid.UUID) (*Stream, error) {
+	str, ok := r.streams[id]
+	if !ok {
+		return nil, errors.New("Stream with id [" + id.String() + "] not found")
+	}
+	return str, nil
 }

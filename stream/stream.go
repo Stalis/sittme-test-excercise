@@ -18,36 +18,42 @@ func newStream() *Stream {
 	}
 }
 
-// // State возвращает состояние трансляции
-// func (t Stream) State() State {
-// 	return t.State
-// }
-
-// // Created возвращает время создания трансляция
-// func (t Stream) Created() time.Time {
-// 	return t.Created
-// }
+// SetState пробует изменить состояние трансляции на указанное
+func (s *Stream) SetState(state State) error {
+	switch state {
+	case Created:
+		return errors.New("Cannot set stream state as `Created`")
+	case Active:
+		return s.Activate()
+	case Interrupted:
+		return s.Interrupt()
+	case Finished:
+		return s.Finish()
+	default:
+		return errors.New("Unknown state")
+	}
+}
 
 // Activate активирует трансляцию после создания или прерывания
-func (t *Stream) Activate() error {
-	if t.State != Created && t.State != Interrupted {
+func (s *Stream) Activate() error {
+	if s.State != Created && s.State != Interrupted {
 		return errors.New("Invalid stream State")
 	}
-	t.State = Active
+	s.State = Active
 	return nil
 }
 
 // Interrupt прерывает трансляцию
-func (t *Stream) Interrupt() error {
-	if t.State != Active {
+func (s *Stream) Interrupt() error {
+	if s.State != Active {
 		return errors.New("Stream is not active")
 	}
-	t.State = Interrupted
+	s.State = Interrupted
 	return nil
 }
 
 // Finish завершает трансляцию
-func (t *Stream) Finish() error {
-	t.State = Finished
+func (s *Stream) Finish() error {
+	s.State = Finished
 	return nil
 }
