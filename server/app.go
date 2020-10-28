@@ -1,8 +1,11 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/kpango/glg"
 
@@ -13,35 +16,70 @@ import (
 	"../stream"
 )
 
-type App struct {
-	BindPath string
-	router   *mux.Router
-	server   http.Server
-	streams  stream.Repository
+// Config структура конфигурации сервера
+type Config struct {
+	Host         string
+	Port         int
+	BindPath     string
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	UseTLS       bool
+	CertPath     string
+	KeyPath      string
 }
 
-func (app *App) Initialize() {
+// App приложение сервера трансляций
+type App struct {
+	config  Config
+	server  *http.Server
+	router  *mux.Router
+	streams stream.Repository
+}
+
+// Initialize инициализирует роутер, хранилище данных и сохраняет конфигурацию
+func (app *App) Initialize(conf Config) {
+	app.config = conf
 	app.streams = stream.NewMapRepository()
 
 	app.router = mux.NewRouter()
 	app.initializeRoutes()
 }
 
-func (app *App) Run(server http.Server) {
-	server.Handler = app.router
-	glg.Fatalln(server.ListenAndServe())
+// Run запускает сервер синхронно
+func (app *App) Run() {
+	app.server = &http.Server{
+		Addr:         app.config.Host + ":" + fmt.Sprint(app.config.Port),
+		Handler:      app.router,
+		ReadTimeout:  app.config.ReadTimeout,
+		WriteTimeout: app.config.WriteTimeout,
+	}
+
+	if app.config.UseTLS {
+		glg.Info("Run server at https:\\\\%v", app.server.Addr)
+		glg.Fatalln(app.server.ListenAndServeTLS(app.config.CertPath, app.config.KeyPath))
+	} else {
+		glg.Infof("Run server at http:\\\\%v", app.server.Addr)
+		glg.Fatalln(app.server.ListenAndServe())
+	}
 }
 
-func (app *App) RunTLS(server http.Server, certPath, keyPath string) {
-	server.Handler = app.router
-	glg.Fatalln(server.ListenAndServeTLS(certPath, keyPath))
+// RunAsync запускает сервис асинхронно
+func (app *App) RunAsync() {
+	go app.Run()
+}
+
+// Shutdown пытается корректно завершить работу сервера
+func (app *App) Shutdown() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	app.server.Shutdown(ctx)
 }
 
 func (app *App) initializeRoutes() {
-	app.router.HandleFunc(app.BindPath, app.getStreamInfo).Methods(http.MethodGet)
-	app.router.HandleFunc(app.BindPath, app.createStream).Methods(http.MethodPost)
-	app.router.HandleFunc(app.BindPath, app.changeStreamState).Methods(http.MethodPut)
-	app.router.HandleFunc(app.BindPath, app.deleteStream).Methods(http.MethodDelete)
+	app.router.HandleFunc(app.config.BindPath, app.getStreamInfo).Methods(http.MethodGet)
+	app.router.HandleFunc(app.config.BindPath, app.createStream).Methods(http.MethodPost)
+	app.router.HandleFunc(app.config.BindPath, app.changeStreamState).Methods(http.MethodPut)
+	app.router.HandleFunc(app.config.BindPath, app.deleteStream).Methods(http.MethodDelete)
 }
 
 func (app *App) getStreamInfo(w http.ResponseWriter, r *http.Request) {

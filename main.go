@@ -2,11 +2,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"net/http"
+	"os"
+	"os/signal"
 	"time"
-
-	"github.com/kpango/glg"
 
 	"./server"
 )
@@ -36,21 +34,24 @@ func init() {
 func main() {
 	flag.Parse()
 
-	glg.Infof("Starting server at %v:%v", host, port)
-
-	app := server.App{
-		BindPath: bindPath,
-	}
-	app.Initialize()
-	s := http.Server{
-		Addr:         fmt.Sprintf("%v:%v", host, port),
+	app := server.App{}
+	app.Initialize(server.Config{
+		Host:         host,
+		Port:         port,
+		BindPath:     bindPath,
 		ReadTimeout:  readTimeout,
 		WriteTimeout: writeTimeout,
-	}
+		UseTLS:       useTLS,
+		CertPath:     tlsCert,
+		KeyPath:      tlsKey,
+	})
 
-	if useTLS {
-		app.Run(s)
-	} else {
-		app.RunTLS(s, tlsCert, tlsKey)
-	}
+	app.RunAsync()
+
+	// ожидание команды прерывания
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+
+	app.Shutdown()
 }
