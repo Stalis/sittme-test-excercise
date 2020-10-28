@@ -144,10 +144,49 @@ func (app *App) createStream(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) changeStreamState(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(args.Get("id"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(formatErrorData(err))
+		return
+	}
 
+	state, err := stream.ParseState(args.Get("state"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(formatErrorData(err))
+		return
+}
+
+	err = app.streams.SetState(id, state)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(formatErrorData(err))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (app *App) deleteStream(w http.ResponseWriter, r *http.Request) {
+	args := r.URL.Query()
+	id, err := uuid.Parse(args.Get("id"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(formatErrorData(err))
+		return
+	}
+
+	glg.Debugf("Try deleting stream [%v]", id)
+
+	err = app.streams.RemoveStream(id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(formatErrorData(err))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 
 }
 
