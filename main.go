@@ -46,12 +46,11 @@ func main() {
 		Addr:         fmt.Sprintf("%v:%v", host, port),
 		ReadTimeout:  readTimeout,
 		WriteTimeout: writeTimeout,
-	})
+	}
 
-	var err error
 	if useTLS {
 		app.Run(s)
 	} else {
-		app.RunTls(s, tlsCert, tlsKey)
+		app.RunTLS(s, tlsCert, tlsKey)
 	}
 }
