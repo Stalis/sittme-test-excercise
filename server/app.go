@@ -144,6 +144,7 @@ func (app *App) createStream(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) changeStreamState(w http.ResponseWriter, r *http.Request) {
+	args := r.URL.Query()
 	id, err := uuid.Parse(args.Get("id"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
