@@ -55,10 +55,10 @@ func (app *App) Run() {
 	}
 
 	if app.config.UseTLS {
-		glg.Info("Run server at https:\\\\%v", app.server.Addr)
+		glg.Info("Run server at https://%v", app.server.Addr)
 		glg.Fatalln(app.server.ListenAndServeTLS(app.config.CertPath, app.config.KeyPath))
 	} else {
-		glg.Infof("Run server at http:\\\\%v", app.server.Addr)
+		glg.Infof("Run server at http://%v", app.server.Addr)
 		glg.Fatalln(app.server.ListenAndServe())
 	}
 }
@@ -87,22 +87,25 @@ func (app *App) getStreamInfo(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(args.Get("id"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write(formatErrorData(err))
 		return
 	}
 
 	stream, err := app.streams.GetInfo(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write(formatErrorData(err))
 		return
 	}
 
 	res, err := json.Marshal(StreamInfo{
-		Type:       "data",
+		Type:       "stream",
 		ID:         id.String(),
 		Attributes: stream,
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write(formatErrorData(err))
 		return
 	}
 
@@ -114,11 +117,15 @@ func (app *App) createStream(w http.ResponseWriter, r *http.Request) {
 	id, err := app.streams.CreateStream()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(formatErrorData(err))
+		return
 	}
 
 	stream, err := app.streams.GetInfo(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(formatErrorData(err))
+		return
 	}
 
 	res, err := json.Marshal(StreamInfo{
@@ -128,6 +135,7 @@ func (app *App) createStream(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write(formatErrorData(err))
 		return
 	}
 
@@ -141,4 +149,16 @@ func (app *App) changeStreamState(w http.ResponseWriter, r *http.Request) {
 
 func (app *App) deleteStream(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func formatErrorData(e error) []byte {
+	res, err := json.Marshal(ErrorInfo{
+		Type:  "error",
+		Error: e.Error(),
+	})
+	if err != nil {
+		return []byte("Error with marshalling error")
+	}
+
+	return res
 }
