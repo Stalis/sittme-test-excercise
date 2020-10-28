@@ -22,7 +22,7 @@ func newStream() *Stream {
 func (s *Stream) SetState(state State) error {
 	switch state {
 	case Created:
-		return errors.New("Cannot set stream state as `Created`")
+		return errors.New("Cannot set stream state as Created")
 	case Active:
 		return s.Activate()
 	case Interrupted:
@@ -36,24 +36,36 @@ func (s *Stream) SetState(state State) error {
 
 // Activate активирует трансляцию после создания или прерывания
 func (s *Stream) Activate() error {
+	if s.State == Active {
+		return errors.New("Stream is already Active")
+	}
 	if s.State != Created && s.State != Interrupted {
 		return errors.New("Invalid stream State")
 	}
+
 	s.State = Active
 	return nil
 }
 
 // Interrupt прерывает трансляцию
 func (s *Stream) Interrupt() error {
-	if s.State != Active {
-		return errors.New("Stream is not active")
+	if s.State == Interrupted {
+		return errors.New("Stream is already interrupted")
 	}
+	if s.State != Active {
+		return errors.New("Stream is not Active")
+	}
+
 	s.State = Interrupted
 	return nil
 }
 
 // Finish завершает трансляцию
 func (s *Stream) Finish() error {
+	if s.State == Finished {
+		return errors.New("Stream is already Finished")
+	}
+
 	s.State = Finished
 	return nil
 }
