@@ -99,9 +99,12 @@ func (app *App) getStreamInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := json.Marshal(StreamInfo{
-		Type:       "stream",
-		ID:         id.String(),
-		Attributes: stream,
+		Type: "stream",
+		ID:   id.String(),
+		Attributes: StreamAttributes{
+			State:   stream.State.String(),
+			Created: stream.Created,
+		},
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -129,9 +132,12 @@ func (app *App) createStream(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := json.Marshal(StreamInfo{
-		Type:       "data",
-		ID:         id.String(),
-		Attributes: stream,
+		Type: "data",
+		ID:   id.String(),
+		Attributes: StreamAttributes{
+			State:   stream.State.String(),
+			Created: stream.Created,
+		},
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -157,7 +163,7 @@ func (app *App) changeStreamState(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(formatErrorData(err))
 		return
-}
+	}
 
 	err = app.streams.SetState(id, state)
 	if err != nil {
